@@ -1,20 +1,31 @@
-# Use the official Node.js image as the base image
-FROM node:18
+FROM node:18-alpine AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+# Copiar package files
+COPY package*.json ./
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
+
+# Instalar dependências
+RUN npm ci
+
+# Copiar código fonte
+COPY src ./src
+
+# Build
+RUN npm run build
+
+# Produção
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copiar apenas necessário
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code to the working directory
-COPY . .
-
-# Expose the port the app runs on
 EXPOSE 3000
 
-# Define the command to run the application
-CMD ["npm", "start"]
+CMD ["node", "dist/main"]
