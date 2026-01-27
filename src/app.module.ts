@@ -1,8 +1,30 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { SessionModule } from './modules/sessions/session.module';
+import { SeatsModule } from './modules/seats/seats.module';
 
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Torna o ConfigModule global
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DATABASE_HOST', 'localhost'),
+        port: configService.get('DATABASE_PORT', 5432),
+        username: configService.get('DATABASE_USER', 'cinema'),
+        password: configService.get('DATABASE_PASSWORD', 'cinema123'),
+        database: configService.get('DATABASE_NAME', 'cinema_db'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: configService.get('NODE_ENV') !== 'production',
+      }),
+      inject: [ConfigService],
+    }),
+    SessionModule,
+    SeatsModule,
+  ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn, Index, UpdateDateColumn, CreateDateColumn } from "typeorm";
+import { Column, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn, Index, UpdateDateColumn, CreateDateColumn, Entity } from "typeorm";
 import { Session } from "./session.entity";
 
 export enum SeatStatus {
@@ -7,13 +7,13 @@ export enum SeatStatus {
     SOLD = 'sold'
 }
 
+@Entity('seats')
 @Index(['sessionId', 'seatNumber', 'row'])
 export class Seats {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ name: 'session_id' })
-    @Index()
     sessionId: string;
 
     @ManyToOne(() => Session, session => session.seats)
@@ -21,15 +21,12 @@ export class Seats {
     session: Session;
 
     @Column({ name: 'seat_number' })
-    @Index()
     seatNumber: string;
 
     @Column({ name: 'row', type: 'char', length: 1 })
-    @Index()
     row: string;
 
     @Column({ type: 'enum', enum: SeatStatus, default: SeatStatus.AVAILABLE })
-    @Index()
     status: SeatStatus;
 
     @Column({ name: 'version', type: 'int', default: 1 })
@@ -40,4 +37,5 @@ export class Seats {
 
     @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
+    static Status: any;
 }

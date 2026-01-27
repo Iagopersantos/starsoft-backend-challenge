@@ -8,23 +8,18 @@ export class Session {
     id: string;
 
     @Column({ name: 'movie_name' })
-    @Index()
     movieName: string;
 
     @Column({ name: 'session_time', type: 'timestamp' })
-    @Index()
     sessionTime: Date;
 
     @Column({ name: 'room' })
-    @Index()
     room: string;
 
     @Column({ name: 'ticket_price', type: 'decimal', precision: 10, scale: 2 })
-    @Index()
     ticketPrice: number;
 
     @OneToMany(() => Seats, seats => seats.session)
-    @Index()
     seats: Seats[];
 
     @CreateDateColumn({ name: 'created_at' })
