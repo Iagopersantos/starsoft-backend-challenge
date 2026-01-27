@@ -9,13 +9,13 @@ export enum ReservationStatus {
 }
 
 @Entity('reservations')
-@Index(['seatId', 'userId']) // Adding an index for seatId and userId to improve query performance
+@Index(['seatId', 'userId'])
 export class Reservation {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ name: 'seat_id' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     seatId: string;
 
     @ManyToOne(() => Seats)
@@ -23,7 +23,7 @@ export class Reservation {
     seat: Seats;
 
     @Column({ name: 'user_id' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     userId: string;
 
     @Column({
@@ -34,6 +34,7 @@ export class Reservation {
     status: ReservationStatus;
 
     @Column({ name: 'idempotency_key', unique: true, nullable: true })
+    @Index()
     idempotencyKey: string;
 
     @Column({ name: 'expires_at', type: 'timestamp' })

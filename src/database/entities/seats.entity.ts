@@ -7,13 +7,13 @@ export enum SeatStatus {
     SOLD = 'sold'
 }
 
-@Index(['sessionId', 'seatNumber', 'row']) // Adding a composite index for sessionId, seatNumber, and row to improve query performance
+@Index(['sessionId', 'seatNumber', 'row'])
 export class Seats {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ name: 'session_id' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     sessionId: string;
 
     @ManyToOne(() => Session, session => session.seats)
@@ -21,14 +21,15 @@ export class Seats {
     session: Session;
 
     @Column({ name: 'seat_number' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     seatNumber: string;
 
     @Column({ name: 'row', type: 'char', length: 1 })
-    @Index() // Adding an index to improve query performance
+    @Index()
     row: string;
 
     @Column({ type: 'enum', enum: SeatStatus, default: SeatStatus.AVAILABLE })
+    @Index()
     status: SeatStatus;
 
     @Column({ name: 'version', type: 'int', default: 1 })

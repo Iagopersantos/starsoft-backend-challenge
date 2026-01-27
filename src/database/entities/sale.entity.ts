@@ -3,13 +3,13 @@ import { Reservation } from './reservation.entity';
 import { Seats } from './seats.entity';
 
 @Entity('sales')
-@Index(['reservationId', 'seatId', 'userId']) // Adding a composite index for reservationId, seatId, and userId to improve query performance
+@Index(['reservationId', 'seatId', 'userId'])
 export class Sale {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ name: 'reservation_id', unique: true })
-    @Index() // Adding an index to improve query performance
+    @Index()
     reservationId: string;
 
     @ManyToOne(() => Reservation)
@@ -17,7 +17,7 @@ export class Sale {
     reservation: Reservation;
 
     @Column({ name: 'seat_id' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     seatId: string;
 
     @ManyToOne(() => Seats)
@@ -25,10 +25,11 @@ export class Sale {
     seat: Seats;
 
     @Column({ name: 'user_id' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     userId: string;
 
     @Column({ name: 'amount_paid', type: 'decimal', precision: 10, scale: 2 })
+    @Index()
     amountPaid: number;
 
     @Column({ name: 'payment_method', nullable: true })

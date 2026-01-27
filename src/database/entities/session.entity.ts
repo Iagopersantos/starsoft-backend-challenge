@@ -2,27 +2,29 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { Seats } from "./seats.entity";
 
 @Entity('sessions')
-@Index(['movieName', 'sessionTime', 'room']) // Adding a composite index for movieName, sessionTime, and room to improve query performance
+@Index(['movieName', 'sessionTime', 'room'])
 export class Session {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ name: 'movie_name' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     movieName: string;
 
     @Column({ name: 'session_time', type: 'timestamp' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     sessionTime: Date;
 
     @Column({ name: 'room' })
-    @Index() // Adding an index to improve query performance
+    @Index()
     room: string;
 
     @Column({ name: 'ticket_price', type: 'decimal', precision: 10, scale: 2 })
+    @Index()
     ticketPrice: number;
 
     @OneToMany(() => Seats, seats => seats.session)
+    @Index()
     seats: Seats[];
 
     @CreateDateColumn({ name: 'created_at' })
