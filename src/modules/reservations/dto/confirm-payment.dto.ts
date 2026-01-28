@@ -1,12 +1,13 @@
-import { IsUUID, IsString, IsOptional } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ConfirmPaymentDto {
-  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
-  @IsUUID()
-  reservationId: string;
-
-  @ApiProperty({ example: 'credit_card', required: false })
+  @ApiProperty({
+    example: 'credit_card',
+    description:
+      'Método de pagamento utilizado (credit_card, debit_card, pix, etc.)',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   paymentMethod?: string;
