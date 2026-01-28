@@ -4,7 +4,7 @@ services:
   # Aplicação NestJS
   api:
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
     container_name: cinema-api
     ports:
@@ -18,7 +18,10 @@ services:
       DATABASE_NAME: cinema_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      RABBITMQ_URL: amqp://rabbitmq:5672
+      RABBITMQ_URL: amqp://cinema:cinema123@rabbitmq:5672
+      AMQP_URL: amqp://cinema:cinema123@rabbitmq:5672
+      RABBITMQ_USER: cinema
+      RABBITMQ_PASSWORD: cinema123
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,7 +36,7 @@ services:
   # Réplica da API para testar concorrência
   api-replica:
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
     container_name: cinema-api-replica
     ports:
@@ -47,7 +50,10 @@ services:
       DATABASE_NAME: cinema_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      RABBITMQ_URL: amqp://rabbitmq:5672
+      RABBITMQ_URL: amqp://cinema:cinema123@rabbitmq:5672
+      AMQP_URL: amqp://cinema:cinema123@rabbitmq:5672
+      RABBITMQ_USER: cinema
+      RABBITMQ_PASSWORD: cinema123
     depends_on:
       - api
     networks:
