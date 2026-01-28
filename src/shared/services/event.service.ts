@@ -23,6 +23,15 @@ export interface ReservationExpiredEvent {
   sessionId: string;
 }
 
+export interface SaleCreatedEvent {
+  saleId: string;
+  reservationId: string;
+  seatId: string;
+  userId: string;
+  amountPaid: number;
+  paymentMethod: string;
+}
+
 @Injectable()
 export class EventService {
   private readonly logger = new Logger(EventService.name);
@@ -82,6 +91,25 @@ export class EventService {
       this.logger.log(`Event published: reservation.expired for ${event.reservationId}`);
     } catch (error) {
       this.logger.error('Failed to publish reservation.expired', error);
+    }
+  }
+
+  async publishSaleCreated(event: SaleCreatedEvent) {
+    try {
+      await this.amqpConnection.publish(
+        this.exchange,
+        'sale.created',
+        event,
+        {
+          persistent: true,
+          timestamp: Date.now(),
+          messageId: `sale-${Date.now()}-${Math.random()}`,
+        }
+      );
+
+      this.logger.log(`Event published: sale.created for ${event.saleId}`);
+    } catch (error) {
+      this.logger.error('Failed to publish sale.created', error);
     }
   }
 }
