@@ -6,7 +6,13 @@ import {
   HttpStatus,
   Param,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiExtraModels } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiExtraModels,
+} from '@nestjs/swagger';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
@@ -18,7 +24,11 @@ import {
 import { ApiResponses } from '../../shared/decorators/api-response.decorator';
 
 @ApiTags('Reservations')
-@ApiExtraModels(ReservationItemDto, CreateReservationResponseDto, ConfirmPaymentResponseDto)
+@ApiExtraModels(
+  ReservationItemDto,
+  CreateReservationResponseDto,
+  ConfirmPaymentResponseDto,
+)
 @Controller('reservations')
 export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}
@@ -51,6 +61,10 @@ export class ReservationsController {
     name: 'id',
     description: 'ID da reserva (UUID)',
     example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiBody({
+    type: ConfirmPaymentDto,
+    description: 'Dados do pagamento',
   })
   @ApiResponses({
     200: {

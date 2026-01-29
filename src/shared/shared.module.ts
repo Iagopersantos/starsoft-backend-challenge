@@ -1,40 +1,33 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RedisModule, RedisModuleOptions } from '@nestjs-modules/ioredis';
+import { RedisModule } from '@nestjs-modules/ioredis';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { LockService } from './services/lock.service';
 import { CacheService } from './services/cache.service';
 import { EventService } from './services/event.service';
+import { redisModuleAsyncOptions } from '../config/redis.config';
 
 @Global()
 @Module({
   imports: [
-    RedisModule.forRootAsync({
-      useFactory: (configService: ConfigService): RedisModuleOptions => {
-        const redisHost = configService.get<string>('REDIS_HOST', 'localhost');
-        const redisPort = configService.get<number>('REDIS_PORT', 6379);
-        return {
-          type: 'single',
-          url: `redis://${redisHost}:${redisPort}`,
-        };
-      },
-      inject: [ConfigService],
-    }),
+    RedisModule.forRootAsync(redisModuleAsyncOptions),
     RabbitMQModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
-        const rabbitUrl = configService.get<string>(
-          'RABBITMQ_URL',
-          'amqp://cinema:cinema123@localhost:5672',
-        );
+        const rabbitUrl = configService.get<string>('RABBITMQ_URL');
+        if (!rabbitUrl) {
+          throw new Error('RABBITMQ_URL environment variable is required');
+        }
         return {
           exchanges: [
             {
-              name: 'cinema-events',
+              name: 'cinema.events',
               type: 'topic',
+              options: { durable: true },
             },
           ],
           uri: rabbitUrl,
           connectionInitOptions: { wait: false },
+          enableControllerDiscovery: true,
         };
       },
       inject: [ConfigService],

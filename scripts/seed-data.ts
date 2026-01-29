@@ -1,15 +1,18 @@
 import { DataSource } from 'typeorm';
+import * as dotenv from 'dotenv';
 import { Session } from '../src/database/entities/session.entity';
 import { Seats, SeatStatus } from '../src/database/entities/seats.entity';
+
+dotenv.config();
 
 async function seed() {
   const dataSource = new DataSource({
     type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'cinema',
-    password: 'cinema123',
-    database: 'cinema_db',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: Number(process.env.DATABASE_PORT) || 5432,
+    username: process.env.DATABASE_USER || 'cinema',
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME || 'cinema_db',
     entities: [Session, Seats],
   });
 

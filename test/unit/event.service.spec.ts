@@ -73,7 +73,9 @@ describe('EventService', () => {
         expiresAt: '2024-01-01T12:00:00Z',
       };
 
-      await expect(service.publishReservationCreated(event)).resolves.not.toThrow();
+      await expect(
+        service.publishReservationCreated(event),
+      ).resolves.not.toThrow();
     });
 
     it('should include all required fields in the event', async () => {
@@ -130,7 +132,9 @@ describe('EventService', () => {
         amountPaid: 25.5,
       };
 
-      await expect(service.publishPaymentConfirmed(event)).resolves.not.toThrow();
+      await expect(
+        service.publishPaymentConfirmed(event),
+      ).resolves.not.toThrow();
     });
 
     it('should include correct amount in the event', async () => {
@@ -179,7 +183,9 @@ describe('EventService', () => {
         sessionId: 'session-789',
       };
 
-      await expect(service.publishReservationExpired(event)).resolves.not.toThrow();
+      await expect(
+        service.publishReservationExpired(event),
+      ).resolves.not.toThrow();
     });
   });
 

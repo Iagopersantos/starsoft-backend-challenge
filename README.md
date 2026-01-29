@@ -35,6 +35,52 @@ Este projeto implementa um sistema de reserva de ingressos para uma rede de cine
 - Node.js 18+ (para desenvolvimento local)
 - npm ou yarn
 
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto baseado no exemplo abaixo:
+
+```env
+# Application
+NODE_ENV=development
+PORT=3333
+API_PREFIX=api/v1
+
+# Database
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=cinema
+DATABASE_PASSWORD=cinema123
+DATABASE_NAME=cinema_db
+DATABASE_SYNC=false
+DATABASE_LOGGING=true
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+
+# RabbitMQ
+RABBITMQ_URL=amqp://cinema:cinema123@localhost:5672
+RABBITMQ_USER=cinema
+RABBITMQ_PASSWORD=cinema123
+
+# Reservations
+RESERVATION_TTL_SECONDS=30
+
+# Locks
+LOCK_TTL_MS=5000
+LOCK_RETRY_COUNT=10
+LOCK_RETRY_DELAY_MS=200
+
+# Logging
+LOG_LEVEL=debug
+
+# Rate Limiting (opcional)
+RATE_LIMIT_TTL=60
+RATE_LIMIT_MAX=100
+```
+
 ### Subir o ambiente completo (Docker)
 
 ```bash

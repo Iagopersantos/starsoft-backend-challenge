@@ -5,10 +5,19 @@ import type {
   PaymentConfirmedEvent,
   ReservationExpiredEvent,
 } from '../../shared/services/event.service';
+import { ReservationCreatedHandler } from '../handlers/reservation-created.handler';
+import { PaymentConfirmedHandler } from '../handlers/payment-confirmed.handler';
+import { ReservationExpirationHandler } from '../handlers/reservation-expiration.handler';
 
 @Injectable()
 export class ReservationConsumer {
   private readonly logger = new Logger(ReservationConsumer.name);
+
+  constructor(
+    private readonly reservationCreatedHandler: ReservationCreatedHandler,
+    private readonly paymentConfirmedHandler: PaymentConfirmedHandler,
+    private readonly reservationExpirationHandler: ReservationExpirationHandler,
+  ) {}
 
   @RabbitSubscribe({
     exchange: 'cinema.events',
@@ -21,20 +30,14 @@ export class ReservationConsumer {
       },
     },
   })
-  async handleReservationCreated(event: ReservationCreatedEvent) {
-    this.logger.log(`Processing reservation.created: ${JSON.stringify(event)}`);
+  handleReservationCreated(event: ReservationCreatedEvent): void {
+    this.logger.debug(`Received reservation.created event`);
 
     try {
-      // Aqui você pode:
-      // - Enviar email de confirmação
-      // - Atualizar analytics
-      // - Notificar sistemas externos
-      // - Agendar job de expiração
-
-      this.logger.log(`Reservation processed successfully`);
+      this.reservationCreatedHandler.handle(event);
     } catch (error) {
       this.logger.error('Error processing reservation.created', error);
-      throw error; // Vai para retry/DLQ
+      throw error;
     }
   }
 
@@ -44,17 +47,11 @@ export class ReservationConsumer {
     queue: 'payments.notifications',
     queueOptions: { durable: true },
   })
-  async handlePaymentConfirmed(event: PaymentConfirmedEvent) {
-    this.logger.log(`Processing payment.confirmed: ${JSON.stringify(event)}`);
+  handlePaymentConfirmed(event: PaymentConfirmedEvent): void {
+    this.logger.debug(`Received payment.confirmed event`);
 
     try {
-      // Aqui você pode:
-      // - Enviar email com ingresso
-      // - Gerar PDF do ingresso
-      // - Atualizar relatórios financeiros
-      // - Notificar parceiros
-
-      this.logger.log(`Payment processed successfully`);
+      this.paymentConfirmedHandler.handle(event);
     } catch (error) {
       this.logger.error('Error processing payment.confirmed', error);
       throw error;
@@ -67,16 +64,11 @@ export class ReservationConsumer {
     queue: 'reservations.cleanup',
     queueOptions: { durable: true },
   })
-  async handleReservationExpired(event: ReservationExpiredEvent) {
-    this.logger.log(`Processing reservation.expired: ${JSON.stringify(event)}`);
+  handleReservationExpired(event: ReservationExpiredEvent): void {
+    this.logger.debug(`Received reservation.expired event`);
 
     try {
-      // Aqui você pode:
-      // - Atualizar métricas de conversão
-      // - Enviar lembrete ao usuário
-      // - Limpar dados temporários
-
-      this.logger.log(`Expiration processed successfully`);
+      this.reservationExpirationHandler.handle(event);
     } catch (error) {
       this.logger.error('Error processing reservation.expired', error);
       throw error;

@@ -51,27 +51,31 @@ describe('Concurrency Integration Tests', () => {
     lockState = new Map();
 
     // Mock EntityManager
-    const createMockEntityManager = (): jest.Mocked<EntityManager> => ({
-      update: jest.fn().mockResolvedValue(undefined),
-      create: jest.fn().mockReturnValue({}),
-      save: jest.fn().mockResolvedValue({ id: 'sale-uuid-1' }),
-      getRepository: jest.fn().mockReturnValue({
+    const createMockEntityManager = (): jest.Mocked<EntityManager> =>
+      ({
         update: jest.fn().mockResolvedValue(undefined),
-      }),
-    } as unknown as jest.Mocked<EntityManager>);
+        create: jest.fn().mockReturnValue({}),
+        save: jest.fn().mockResolvedValue({ id: 'sale-uuid-1' }),
+        getRepository: jest.fn().mockReturnValue({
+          update: jest.fn().mockResolvedValue(undefined),
+        }),
+      }) as unknown as jest.Mocked<EntityManager>;
 
     // Mock QueryRunner
-    const createMockQueryRunner = (): jest.Mocked<QueryRunner> => ({
-      connect: jest.fn().mockResolvedValue(undefined),
-      startTransaction: jest.fn().mockResolvedValue(undefined),
-      commitTransaction: jest.fn().mockResolvedValue(undefined),
-      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
-      release: jest.fn().mockResolvedValue(undefined),
-      manager: createMockEntityManager(),
-    } as unknown as jest.Mocked<QueryRunner>);
+    const createMockQueryRunner = (): jest.Mocked<QueryRunner> =>
+      ({
+        connect: jest.fn().mockResolvedValue(undefined),
+        startTransaction: jest.fn().mockResolvedValue(undefined),
+        commitTransaction: jest.fn().mockResolvedValue(undefined),
+        rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+        release: jest.fn().mockResolvedValue(undefined),
+        manager: createMockEntityManager(),
+      }) as unknown as jest.Mocked<QueryRunner>;
 
     dataSource = {
-      createQueryRunner: jest.fn().mockImplementation(() => createMockQueryRunner()),
+      createQueryRunner: jest
+        .fn()
+        .mockImplementation(() => createMockQueryRunner()),
     } as unknown as jest.Mocked<DataSource>;
 
     // Mock SeatsRepository com estado compartilhado
@@ -79,14 +83,18 @@ describe('Concurrency Integration Tests', () => {
       findByIdsWithLock: jest.fn().mockImplementation((seatIds: string[]) => {
         return seatIds.map((id) => createMockSeat(id));
       }),
-      updateStatus: jest.fn().mockImplementation((seatIds: string[], status: SeatStatus) => {
-        seatIds.forEach((id) => seatState.set(id, status));
-        return Promise.resolve();
-      }),
-      updateSingleStatus: jest.fn().mockImplementation((seatId: string, status: SeatStatus) => {
-        seatState.set(seatId, status);
-        return Promise.resolve();
-      }),
+      updateStatus: jest
+        .fn()
+        .mockImplementation((seatIds: string[], status: SeatStatus) => {
+          seatIds.forEach((id) => seatState.set(id, status));
+          return Promise.resolve();
+        }),
+      updateSingleStatus: jest
+        .fn()
+        .mockImplementation((seatId: string, status: SeatStatus) => {
+          seatState.set(seatId, status);
+          return Promise.resolve();
+        }),
     } as unknown as jest.Mocked<SeatsRepository>;
 
     // Mock ReservationsRepository
@@ -104,48 +112,52 @@ describe('Concurrency Integration Tests', () => {
     const mockLock = { release: jest.fn().mockResolvedValue(undefined) };
 
     lockService = {
-      withMultipleLocks: jest.fn().mockImplementation(
-        async (resources: string[], callback: () => Promise<any>) => {
-          // Simula ordenação de locks (prevenção de deadlock)
-          const sortedResources = [...resources].sort();
+      withMultipleLocks: jest
+        .fn()
+        .mockImplementation(
+          async (resources: string[], callback: () => Promise<any>) => {
+            // Simula ordenação de locks (prevenção de deadlock)
+            const sortedResources = [...resources].sort();
 
-          // Simula aquisição de lock
-          for (const resource of sortedResources) {
-            // Simula espera se recurso já está bloqueado
-            let attempts = 0;
-            while (lockState.get(resource) && attempts < 10) {
-              await new Promise((resolve) => setTimeout(resolve, 10));
-              attempts++;
+            // Simula aquisição de lock
+            for (const resource of sortedResources) {
+              // Simula espera se recurso já está bloqueado
+              let attempts = 0;
+              while (lockState.get(resource) && attempts < 10) {
+                await new Promise((resolve) => setTimeout(resolve, 10));
+                attempts++;
+              }
+
+              if (lockState.get(resource)) {
+                throw new Error(`Unable to acquire lock for ${resource}`);
+              }
+
+              lockState.set(resource, true);
             }
 
+            try {
+              return await callback();
+            } finally {
+              // Libera locks
+              sortedResources.forEach((r) => lockState.set(r, false));
+            }
+          },
+        ),
+      withLock: jest
+        .fn()
+        .mockImplementation(
+          async (resource: string, callback: () => Promise<any>) => {
             if (lockState.get(resource)) {
               throw new Error(`Unable to acquire lock for ${resource}`);
             }
-
             lockState.set(resource, true);
-          }
-
-          try {
-            return await callback();
-          } finally {
-            // Libera locks
-            sortedResources.forEach((r) => lockState.set(r, false));
-          }
-        },
-      ),
-      withLock: jest.fn().mockImplementation(
-        async (resource: string, callback: () => Promise<any>) => {
-          if (lockState.get(resource)) {
-            throw new Error(`Unable to acquire lock for ${resource}`);
-          }
-          lockState.set(resource, true);
-          try {
-            return await callback();
-          } finally {
-            lockState.set(resource, false);
-          }
-        },
-      ),
+            try {
+              return await callback();
+            } finally {
+              lockState.set(resource, false);
+            }
+          },
+        ),
       acquireLock: jest.fn().mockResolvedValue(mockLock),
       acquireMultipleLocks: jest.fn().mockResolvedValue(mockLock),
       releaseLock: jest.fn().mockResolvedValue(undefined),
@@ -195,14 +207,16 @@ describe('Concurrency Integration Tests', () => {
       seatState.set(seatId, SeatStatus.AVAILABLE);
 
       // Simula verificação de status no momento da reserva
-      seatsRepository.findByIdsWithLock.mockImplementation((seatIds: string[]) => {
-        return Promise.resolve(
-          seatIds.map((id) => ({
-            ...createMockSeat(id),
-            status: seatState.get(id) || SeatStatus.AVAILABLE,
-          })),
-        );
-      });
+      seatsRepository.findByIdsWithLock.mockImplementation(
+        (seatIds: string[]) => {
+          return Promise.resolve(
+            seatIds.map((id) => ({
+              ...createMockSeat(id),
+              status: seatState.get(id) || SeatStatus.AVAILABLE,
+            })),
+          );
+        },
+      );
 
       const user1Dto: CreateReservationDto = {
         seatIds: [seatId],
@@ -271,14 +285,16 @@ describe('Concurrency Integration Tests', () => {
         },
       );
 
-      seatsRepository.findByIdsWithLock.mockImplementation((seatIds: string[]) => {
-        return Promise.resolve(
-          seatIds.map((id) => ({
-            ...createMockSeat(id),
-            status: seatState.get(id) || SeatStatus.AVAILABLE,
-          })),
-        );
-      });
+      seatsRepository.findByIdsWithLock.mockImplementation(
+        (seatIds: string[]) => {
+          return Promise.resolve(
+            seatIds.map((id) => ({
+              ...createMockSeat(id),
+              status: seatState.get(id) || SeatStatus.AVAILABLE,
+            })),
+          );
+        },
+      );
 
       const dto: CreateReservationDto = {
         seatIds: [seatId],
@@ -336,14 +352,16 @@ describe('Concurrency Integration Tests', () => {
         },
       );
 
-      seatsRepository.findByIdsWithLock.mockImplementation((seatIds: string[]) => {
-        return Promise.resolve(
-          seatIds.map((id) => ({
-            ...createMockSeat(id),
-            status: seatState.get(id) || SeatStatus.AVAILABLE,
-          })),
-        );
-      });
+      seatsRepository.findByIdsWithLock.mockImplementation(
+        (seatIds: string[]) => {
+          return Promise.resolve(
+            seatIds.map((id) => ({
+              ...createMockSeat(id),
+              status: seatState.get(id) || SeatStatus.AVAILABLE,
+            })),
+          );
+        },
+      );
 
       const user1Dto: CreateReservationDto = {
         seatIds: ['seat-A', 'seat-B'],
@@ -376,14 +394,16 @@ describe('Concurrency Integration Tests', () => {
         seatState.set(id, SeatStatus.AVAILABLE);
       });
 
-      seatsRepository.findByIdsWithLock.mockImplementation((seatIds: string[]) => {
-        return Promise.resolve(
-          seatIds.map((id) => ({
-            ...createMockSeat(id),
-            status: seatState.get(id) || SeatStatus.AVAILABLE,
-          })),
-        );
-      });
+      seatsRepository.findByIdsWithLock.mockImplementation(
+        (seatIds: string[]) => {
+          return Promise.resolve(
+            seatIds.map((id) => ({
+              ...createMockSeat(id),
+              status: seatState.get(id) || SeatStatus.AVAILABLE,
+            })),
+          );
+        },
+      );
 
       const reservations: CreateReservationDto[] = [
         { seatIds: ['seat-1', 'seat-2'], userId: 'user-1' },
@@ -474,7 +494,9 @@ describe('Concurrency Integration Tests', () => {
       };
 
       // Simula que já existe uma reserva com essa chave
-      reservationsRepository.findByIdempotencyKey.mockResolvedValue(createdReservation as any);
+      reservationsRepository.findByIdempotencyKey.mockResolvedValue(
+        createdReservation as any,
+      );
 
       const dto: CreateReservationDto = {
         seatIds: [seatId],
@@ -523,25 +545,31 @@ describe('Concurrency Integration Tests', () => {
       };
 
       let callCount = 0;
-      reservationsRepository.findByIdempotencyKey.mockImplementation(async () => {
-        callCount++;
-        // Primeira chamada não encontra, segunda e terceira encontram
-        if (callCount === 1) {
-          return null;
-        }
-        return createdReservation as any;
-      });
+      reservationsRepository.findByIdempotencyKey.mockImplementation(
+        async () => {
+          callCount++;
+          // Primeira chamada não encontra, segunda e terceira encontram
+          if (callCount === 1) {
+            return null;
+          }
+          return createdReservation as any;
+        },
+      );
 
-      reservationsRepository.createReservation.mockResolvedValue(createdReservation);
+      reservationsRepository.createReservation.mockResolvedValue(
+        createdReservation,
+      );
 
-      seatsRepository.findByIdsWithLock.mockImplementation((seatIds: string[]) => {
-        return Promise.resolve(
-          seatIds.map((id) => ({
-            ...createMockSeat(id),
-            status: seatState.get(id) || SeatStatus.AVAILABLE,
-          })),
-        );
-      });
+      seatsRepository.findByIdsWithLock.mockImplementation(
+        (seatIds: string[]) => {
+          return Promise.resolve(
+            seatIds.map((id) => ({
+              ...createMockSeat(id),
+              status: seatState.get(id) || SeatStatus.AVAILABLE,
+            })),
+          );
+        },
+      );
 
       const dto: CreateReservationDto = {
         seatIds: [seatId],
@@ -604,7 +632,13 @@ describe('Concurrency Integration Tests', () => {
 
     it('should handle burst of reservations for limited seats', async () => {
       // 5 assentos, 50 usuários tentando reservar
-      const seatIds = ['seat-burst-1', 'seat-burst-2', 'seat-burst-3', 'seat-burst-4', 'seat-burst-5'];
+      const seatIds = [
+        'seat-burst-1',
+        'seat-burst-2',
+        'seat-burst-3',
+        'seat-burst-4',
+        'seat-burst-5',
+      ];
       seatIds.forEach((id) => seatState.set(id, SeatStatus.AVAILABLE));
 
       seatsRepository.findByIdsWithLock.mockImplementation((ids: string[]) => {

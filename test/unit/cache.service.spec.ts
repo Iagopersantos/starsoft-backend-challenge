@@ -222,7 +222,9 @@ describe('CacheService', () => {
 
       const result = await service.getSessionAvailability(sessionId);
 
-      expect(mockRedis.get).toHaveBeenCalledWith('session:session-123:availability');
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        'session:session-123:availability',
+      );
       expect(result).toEqual(cachedData);
     });
 
@@ -241,7 +243,9 @@ describe('CacheService', () => {
 
       await service.invalidateSessionCache(sessionId);
 
-      expect(mockRedis.del).toHaveBeenCalledWith('session:session-789:availability');
+      expect(mockRedis.del).toHaveBeenCalledWith(
+        'session:session-789:availability',
+      );
     });
   });
 });

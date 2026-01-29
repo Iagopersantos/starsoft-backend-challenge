@@ -81,7 +81,9 @@ describe('ReservationsService', () => {
     } as unknown as jest.Mocked<SeatsRepository>;
 
     lockService = {
-      withMultipleLocks: jest.fn().mockImplementation((_, callback) => callback()),
+      withMultipleLocks: jest
+        .fn()
+        .mockImplementation((_, callback) => callback()),
       withLock: jest.fn().mockImplementation((_, callback) => callback()),
     } as unknown as jest.Mocked<LockService>;
 
@@ -296,7 +298,10 @@ describe('ReservationsService', () => {
       expect(cacheService.invalidateSessionCache).toHaveBeenCalled();
       expect(eventService.publishPaymentConfirmed).toHaveBeenCalled();
       expect(result).toHaveProperty('saleId');
-      expect(result).toHaveProperty('message', 'Pagamento confirmado com sucesso!');
+      expect(result).toHaveProperty(
+        'message',
+        'Pagamento confirmado com sucesso!',
+      );
     });
 
     it('should throw BadRequestException when reservation not found', async () => {
@@ -426,7 +431,9 @@ describe('ReservationsService', () => {
       reservationsRepository.findExpiredPending.mockResolvedValue([
         mockReservation,
       ] as any);
-      reservationsRepository.updateStatus.mockRejectedValue(new Error('DB Error'));
+      reservationsRepository.updateStatus.mockRejectedValue(
+        new Error('DB Error'),
+      );
 
       await service.expireReservations();
 

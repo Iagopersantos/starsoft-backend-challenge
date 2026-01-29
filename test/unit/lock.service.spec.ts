@@ -55,7 +55,10 @@ describe('LockService', () => {
 
       await service.acquireLock(resource, customTtl);
 
-      expect(mockRedlock.acquire).toHaveBeenCalledWith(['lock:seat:456'], customTtl);
+      expect(mockRedlock.acquire).toHaveBeenCalledWith(
+        ['lock:seat:456'],
+        customTtl,
+      );
     });
 
     it('should throw error when unable to acquire lock', async () => {
@@ -87,8 +90,16 @@ describe('LockService', () => {
       await service.acquireMultipleLocks(resources2);
 
       const expectedOrder = ['lock:seat:a', 'lock:seat:m', 'lock:seat:z'];
-      expect(mockRedlock.acquire).toHaveBeenNthCalledWith(1, expectedOrder, 5000);
-      expect(mockRedlock.acquire).toHaveBeenNthCalledWith(2, expectedOrder, 5000);
+      expect(mockRedlock.acquire).toHaveBeenNthCalledWith(
+        1,
+        expectedOrder,
+        5000,
+      );
+      expect(mockRedlock.acquire).toHaveBeenNthCalledWith(
+        2,
+        expectedOrder,
+        5000,
+      );
     });
 
     it('should throw error when unable to acquire multiple locks', async () => {
@@ -153,7 +164,10 @@ describe('LockService', () => {
 
       await service.withLock('resource', callback, customTtl);
 
-      expect(mockRedlock.acquire).toHaveBeenCalledWith(['lock:resource'], customTtl);
+      expect(mockRedlock.acquire).toHaveBeenCalledWith(
+        ['lock:resource'],
+        customTtl,
+      );
     });
   });
 
