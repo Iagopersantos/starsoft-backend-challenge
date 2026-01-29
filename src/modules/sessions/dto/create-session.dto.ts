@@ -1,4 +1,10 @@
-import { IsString, IsDateString, IsNumber, IsPositive, Min } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsNumber,
+  IsPositive,
+  Min,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSessionDto {
@@ -14,7 +20,7 @@ export class CreateSessionDto {
   @IsString()
   room: string;
 
-  @ApiProperty({ example: 25.00, minimum: 0 })
+  @ApiProperty({ example: 25.0, minimum: 0 })
   @IsNumber()
   @IsPositive()
   ticketPrice: number;

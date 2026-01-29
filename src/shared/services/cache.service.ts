@@ -5,17 +5,21 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 @Injectable()
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
-  
+
   // TTL padrões
   private readonly DEFAULT_TTL = 300; // 5 minutos
   private readonly SESSION_AVAILABILITY_TTL = 10; // 10 segundos (dados em tempo real)
-  
+
   constructor(@InjectRedis() private readonly redis: Redis) {}
 
   /**
    * Armazena dados no cache
    */
-  async set(key: string, value: any, ttl: number = this.DEFAULT_TTL): Promise<void> {
+  async set(
+    key: string,
+    value: any,
+    ttl: number = this.DEFAULT_TTL,
+  ): Promise<void> {
     try {
       const serialized = JSON.stringify(value);
       await this.redis.setex(key, ttl, serialized);
@@ -35,7 +39,7 @@ export class CacheService {
         this.logger.debug(`Cache miss: ${key}`);
         return null;
       }
-      
+
       this.logger.debug(`Cache hit: ${key}`);
       return JSON.parse(cached) as T;
     } catch (error) {
@@ -64,7 +68,9 @@ export class CacheService {
       const keys = await this.redis.keys(pattern);
       if (keys.length > 0) {
         await this.redis.del(...keys);
-        this.logger.debug(`Cache pattern deleted: ${pattern} (${keys.length} keys)`);
+        this.logger.debug(
+          `Cache pattern deleted: ${pattern} (${keys.length} keys)`,
+        );
       }
     } catch (error) {
       this.logger.error(`Cache delete pattern error for ${pattern}`, error);
@@ -77,11 +83,11 @@ export class CacheService {
   async increment(key: string, ttl?: number): Promise<number> {
     try {
       const value = await this.redis.incr(key);
-      
+
       if (ttl && value === 1) {
         await this.redis.expire(key, ttl);
       }
-      
+
       return value;
     } catch (error) {
       this.logger.error(`Cache increment error for key ${key}`, error);

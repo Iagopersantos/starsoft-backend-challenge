@@ -1,10 +1,16 @@
-import { IsArray, IsUUID, IsString, ArrayMinSize, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsUUID,
+  IsString,
+  ArrayMinSize,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateReservationDto {
-  @ApiProperty({ 
+  @ApiProperty({
     example: ['550e8400-e29b-41d4-a716-446655440000'],
-    description: 'Array of seat IDs to reserve'
+    description: 'Array of seat IDs to reserve',
   })
   @IsArray()
   @ArrayMinSize(1)
@@ -15,10 +21,10 @@ export class CreateReservationDto {
   @IsString()
   userId: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'unique-key-123',
     description: 'Optional idempotency key for duplicate request protection',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()

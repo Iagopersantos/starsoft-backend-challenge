@@ -1,4 +1,7 @@
-import { RabbitMQModule, MessageHandlerErrorBehavior } from '@golevelup/nestjs-rabbitmq';
+import {
+  RabbitMQModule,
+  MessageHandlerErrorBehavior,
+} from '@golevelup/nestjs-rabbitmq';
 import { ConfigService } from '@nestjs/config';
 
 export const getRabbitMQConfig = (configService: ConfigService) => {
@@ -24,7 +27,7 @@ export const getRabbitMQConfig = (configService: ConfigService) => {
 
         if (retryCount <= maxRetries) {
           const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-          
+
           await channel.publish(
             'cinema.events',
             msg.fields.routingKey,
@@ -36,9 +39,9 @@ export const getRabbitMQConfig = (configService: ConfigService) => {
                 'x-original-error': error.message,
               },
               expiration: delay.toString(),
-            }
+            },
           );
-          
+
           channel.ack(msg);
         } else {
           // Enviar para Dead Letter Queue
@@ -52,9 +55,9 @@ export const getRabbitMQConfig = (configService: ConfigService) => {
                 'x-death-reason': 'max-retries-exceeded',
                 'x-final-error': error.message,
               },
-            }
+            },
           );
-          
+
           channel.ack(msg);
         }
       },

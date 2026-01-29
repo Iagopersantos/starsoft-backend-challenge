@@ -8,91 +8,103 @@ import { CacheService } from '../../shared/services/cache.service';
 
 @Injectable()
 export class SessionService {
-    private readonly SESSION_CACHE_TTL = 10; // Cache TTL in seconds
+  private readonly SESSION_CACHE_TTL = 10; // Cache TTL in seconds
 
-    constructor(
-        @InjectRepository(Session)
-        private readonly sessionRepository: Repository<Session>,
-        @InjectRepository(Seats)
-        private readonly seatRepository: Repository<Seats>,
-        private readonly cacheService: CacheService,
-    ) { }
+  constructor(
+    @InjectRepository(Session)
+    private readonly sessionRepository: Repository<Session>,
+    @InjectRepository(Seats)
+    private readonly seatRepository: Repository<Seats>,
+    private readonly cacheService: CacheService,
+  ) {}
 
-    async createSession(createSessionDto: CreateSessionDto) {
-        const { movieName, sessionTime, room, ticketPrice, totalSeats } = createSessionDto;
+  async getAllSessions() {
+    return this.sessionRepository.find();
+  }
 
-        // Criar a sessão
-        const session = this.sessionRepository.create({
-            movieName,
-            sessionTime,
-            room,
-            ticketPrice,
-        });
+  async createSession(createSessionDto: CreateSessionDto) {
+    const { movieName, sessionTime, room, ticketPrice, totalSeats } =
+      createSessionDto;
 
-        const savedSession = await this.sessionRepository.save(session);
+    // Criar a sessão
+    const session = this.sessionRepository.create({
+      movieName,
+      sessionTime,
+      room,
+      ticketPrice,
+    });
 
-        // Criar os assentos
-        const seats: Seats[] = [];
-        const rows = ['A', 'B', 'C', 'D']; // Exemplo de 4 filas
-        const seatsPerRow = Math.ceil(totalSeats / rows.length);
+    const savedSession = await this.sessionRepository.save(session);
 
-        for (const row of rows) {
-            for (let i = 1; i <= seatsPerRow; i++) {
-                if (seats.length >= totalSeats) break;
-                seats.push(
-                    this.seatRepository.create({
-                        session: savedSession,
-                        seatNumber: `${row}${i}`,
-                        row: row,
-                        status: SeatStatus.AVAILABLE,
-                    }),
-                );
-            }
-        }
+    // Criar os assentos
+    const seats: Seats[] = [];
+    const rows = ['A', 'B', 'C', 'D']; // Exemplo de 4 filas
+    const seatsPerRow = Math.ceil(totalSeats / rows.length);
 
-        await this.seatRepository.save(seats);
-
-        return {
-            ...savedSession,
-            seats,
-        };
+    for (const row of rows) {
+      for (let i = 1; i <= seatsPerRow; i++) {
+        if (seats.length >= totalSeats) break;
+        seats.push(
+          this.seatRepository.create({
+            session: savedSession,
+            seatNumber: `${row}${i}`,
+            row: row,
+            status: SeatStatus.AVAILABLE,
+          }),
+        );
+      }
     }
 
-    async getSessionAvailability(sessionId: string) {
-        // Verificar cache
-        const cachedAvailability = await this.cacheService.getSessionAvailability(sessionId);
-        if (cachedAvailability) {
-            return cachedAvailability;
-        }
+    await this.seatRepository.save(seats);
 
-        // Buscar sessão
-        const session = await this.sessionRepository.findOne({
-            where: { id: sessionId },
-            relations: ['seats'],
-        });
+    return {
+      ...savedSession,
+      seats,
+    };
+  }
 
-        if (!session) {
-            throw new NotFoundException('Sessão não encontrada');
-        }
-
-        // Calcular disponibilidade
-        const availableSeats = session.seats.filter((seat) => seat.status === SeatStatus.AVAILABLE).length;
-        const reservedSeats = session.seats.filter((seat) => seat.status === SeatStatus.RESERVED).length;
-        const soldSeats = session.seats.filter((seat) => seat.status === SeatStatus.SOLD).length;
-
-        const availability = {
-            sessionId: session.id,
-            movieName: session.movieName,
-            totalSeats: session.seats.length,
-            availableSeats,
-            reservedSeats,
-            soldSeats,
-            seats: session.seats,
-        };
-
-        // Cachear resultado
-        await this.cacheService.cacheSessionAvailability(sessionId, availability);
-
-        return availability;
+  async getSessionAvailability(sessionId: string) {
+    // Verificar cache
+    const cachedAvailability =
+      await this.cacheService.getSessionAvailability(sessionId);
+    if (cachedAvailability) {
+      return cachedAvailability;
     }
+
+    // Buscar sessão
+    const session = await this.sessionRepository.findOne({
+      where: { id: sessionId },
+      relations: ['seats'],
+    });
+
+    if (!session) {
+      throw new NotFoundException('Sessão não encontrada');
+    }
+
+    // Calcular disponibilidade
+    const availableSeats = session.seats.filter(
+      (seat) => seat.status === SeatStatus.AVAILABLE,
+    ).length;
+    const reservedSeats = session.seats.filter(
+      (seat) => seat.status === SeatStatus.RESERVED,
+    ).length;
+    const soldSeats = session.seats.filter(
+      (seat) => seat.status === SeatStatus.SOLD,
+    ).length;
+
+    const availability = {
+      sessionId: session.id,
+      movieName: session.movieName,
+      totalSeats: session.seats.length,
+      availableSeats,
+      reservedSeats,
+      soldSeats,
+      seats: session.seats,
+    };
+
+    // Cachear resultado
+    await this.cacheService.cacheSessionAvailability(sessionId, availability);
+
+    return availability;
+  }
 }

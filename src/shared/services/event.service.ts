@@ -49,10 +49,12 @@ export class EventService {
           persistent: true,
           timestamp: Date.now(),
           messageId: `res-${Date.now()}-${Math.random()}`,
-        }
+        },
       );
-      
-      this.logger.log(`Event published: reservation.created for ${event.reservationIds.join(',')}`);
+
+      this.logger.log(
+        `Event published: reservation.created for ${event.reservationIds.join(',')}`,
+      );
     } catch (error) {
       this.logger.error('Failed to publish reservation.created', error);
     }
@@ -67,10 +69,12 @@ export class EventService {
         {
           persistent: true,
           timestamp: Date.now(),
-        }
+        },
       );
-      
-      this.logger.log(`Event published: payment.confirmed for ${event.reservationId}`);
+
+      this.logger.log(
+        `Event published: payment.confirmed for ${event.reservationId}`,
+      );
     } catch (error) {
       this.logger.error('Failed to publish payment.confirmed', error);
     }
@@ -85,10 +89,12 @@ export class EventService {
         {
           persistent: true,
           timestamp: Date.now(),
-        }
+        },
       );
-      
-      this.logger.log(`Event published: reservation.expired for ${event.reservationId}`);
+
+      this.logger.log(
+        `Event published: reservation.expired for ${event.reservationId}`,
+      );
     } catch (error) {
       this.logger.error('Failed to publish reservation.expired', error);
     }
@@ -96,16 +102,11 @@ export class EventService {
 
   async publishSaleCreated(event: SaleCreatedEvent) {
     try {
-      await this.amqpConnection.publish(
-        this.exchange,
-        'sale.created',
-        event,
-        {
-          persistent: true,
-          timestamp: Date.now(),
-          messageId: `sale-${Date.now()}-${Math.random()}`,
-        }
-      );
+      await this.amqpConnection.publish(this.exchange, 'sale.created', event, {
+        persistent: true,
+        timestamp: Date.now(),
+        messageId: `sale-${Date.now()}-${Math.random()}`,
+      });
 
       this.logger.log(`Event published: sale.created for ${event.saleId}`);
     } catch (error) {

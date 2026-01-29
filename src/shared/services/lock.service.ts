@@ -7,18 +7,18 @@ import Redlock from 'redlock';
 export class LockService {
   private readonly logger = new Logger(LockService.name);
   private readonly redlock: Redlock;
-  
+
   // Configurações de lock
   private readonly LOCK_TTL = 5000; // 5 segundos
   private readonly RETRY_COUNT = 10;
   private readonly RETRY_DELAY = 200; // ms
-  
+
   constructor(@InjectRedis() private readonly redis: Redis) {
     this.redlock = new Redlock([redis], {
       driftFactor: 0.01,
       retryCount: this.RETRY_COUNT,
       retryDelay: this.RETRY_DELAY,
-      retryJitter: 50
+      retryJitter: 50,
     });
 
     this.redlock.on('clientError', (err) => {
@@ -50,11 +50,13 @@ export class LockService {
   async acquireMultipleLocks(resources: string[], ttl: number = this.LOCK_TTL) {
     // CRITICAL: Ordenar recursos para prevenir deadlocks
     const sortedResources = [...resources].sort();
-    const lockKeys = sortedResources.map(r => `lock:${r}`);
-    
+    const lockKeys = sortedResources.map((r) => `lock:${r}`);
+
     try {
       const lock = await this.redlock.acquire(lockKeys, ttl);
-      this.logger.debug(`Multiple locks acquired for: ${sortedResources.join(', ')}`);
+      this.logger.debug(
+        `Multiple locks acquired for: ${sortedResources.join(', ')}`,
+      );
       return lock;
     } catch (error) {
       this.logger.error(`Failed to acquire multiple locks`, error);
@@ -80,10 +82,10 @@ export class LockService {
   async withLock<T>(
     resource: string,
     callback: () => Promise<T>,
-    ttl: number = this.LOCK_TTL
+    ttl: number = this.LOCK_TTL,
   ): Promise<T> {
     const lock = await this.acquireLock(resource, ttl);
-    
+
     try {
       return await callback();
     } finally {
@@ -97,10 +99,10 @@ export class LockService {
   async withMultipleLocks<T>(
     resources: string[],
     callback: () => Promise<T>,
-    ttl: number = this.LOCK_TTL
+    ttl: number = this.LOCK_TTL,
   ): Promise<T> {
     const lock = await this.acquireMultipleLocks(resources, ttl);
-    
+
     try {
       return await callback();
     } finally {

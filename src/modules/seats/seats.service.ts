@@ -22,7 +22,10 @@ export class SeatsService {
     return seats;
   }
 
-  async updateSeatStatus(seatId: string, updateSeatStatusDto: UpdateSeatStatusDto) {
+  async updateSeatStatus(
+    seatId: string,
+    updateSeatStatusDto: UpdateSeatStatusDto,
+  ) {
     const seat = await this.seatRepository.findOne({ where: { id: seatId } });
 
     if (!seat) {

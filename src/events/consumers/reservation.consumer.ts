@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import type { 
-  ReservationCreatedEvent, 
-  PaymentConfirmedEvent, 
-  ReservationExpiredEvent 
+import type {
+  ReservationCreatedEvent,
+  PaymentConfirmedEvent,
+  ReservationExpiredEvent,
 } from '../../shared/services/event.service';
 
 @Injectable()
@@ -23,14 +23,14 @@ export class ReservationConsumer {
   })
   async handleReservationCreated(event: ReservationCreatedEvent) {
     this.logger.log(`Processing reservation.created: ${JSON.stringify(event)}`);
-    
+
     try {
       // Aqui você pode:
       // - Enviar email de confirmação
       // - Atualizar analytics
       // - Notificar sistemas externos
       // - Agendar job de expiração
-      
+
       this.logger.log(`Reservation processed successfully`);
     } catch (error) {
       this.logger.error('Error processing reservation.created', error);
@@ -46,14 +46,14 @@ export class ReservationConsumer {
   })
   async handlePaymentConfirmed(event: PaymentConfirmedEvent) {
     this.logger.log(`Processing payment.confirmed: ${JSON.stringify(event)}`);
-    
+
     try {
       // Aqui você pode:
       // - Enviar email com ingresso
       // - Gerar PDF do ingresso
       // - Atualizar relatórios financeiros
       // - Notificar parceiros
-      
+
       this.logger.log(`Payment processed successfully`);
     } catch (error) {
       this.logger.error('Error processing payment.confirmed', error);
@@ -69,13 +69,13 @@ export class ReservationConsumer {
   })
   async handleReservationExpired(event: ReservationExpiredEvent) {
     this.logger.log(`Processing reservation.expired: ${JSON.stringify(event)}`);
-    
+
     try {
       // Aqui você pode:
       // - Atualizar métricas de conversão
       // - Enviar lembrete ao usuário
       // - Limpar dados temporários
-      
+
       this.logger.log(`Expiration processed successfully`);
     } catch (error) {
       this.logger.error('Error processing reservation.expired', error);
